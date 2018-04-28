@@ -40,14 +40,16 @@ Unlike the Grid and Row elements, the Column element can hold any type of child 
 
 A column has two specialized properties: **Width **and **Offset**. Together, these values make up the total size of the column. 
 
-**Adding Columns**
+**Adding Columns
+**
 
 There are various ways to add columns to a row. 
 
 *  Add any number of Column elements from the Toolbox.
 *  If the Row element contains at least one Column, you can split that column into two. Repeat this until you have the desired number of columns.
 
-**Offsetting**
+**Offsetting
+**
 
 Another property of the Column element is its **Offset**. By default, the offset for any column is 0. Increasing the offset increases the overall size of the column. You typically use an offset if you want to leave a blank that is a multiple of the grid kern. Otherwise, CSS is almost always a better option to add a margin or padding.
 
@@ -67,7 +69,8 @@ The Content category contains elements that are pure content.
 
 #### Break
 
-The Break element is probably one of the simplest elements available. It has no specialized properties. All it does is render the &lt;hr&gt; Html element. 
+The Break element is probably one of the simplest elements available. It has no specialized properties. All it does is render the &lt;hr&gt; Html element.
+ 
 
 #### Content Item
 
@@ -99,7 +102,7 @@ The **Level** indicates the size of the heading and ranges from 1 to 6. For exam
 
 The following is an example of Html output when specifying level 6 and the text "Hello Layouts!":
 
-```text
+```csharp
  <h6>Hello Layouts!</h6>
 ```
 
@@ -164,7 +167,8 @@ The Image element allows the user to pick a single image content item from the m
 
 The Media Item element allows the user to pick more than one media item. The user can control what display type to use when rendering the selected media items. Use the Media Item element when:
 
-* You want to display a list of various types of media.  \
+* You want to display a list of various types of media.
+  \
 * You want to control the display type being used to render each media item.
 
 #### Vector Image
@@ -197,12 +201,14 @@ Content parts aren’t placeable by default. The **Placeable** property is a new
 
 The Fields category is similar to the way the Part elements work, but with a few differences:
 
-* Only content fields attached to the current content item's type are displayed as elements  .
+* Only content fields attached to the current content item's type are displayed as elements
+  .
 * There is no Placeable property for content fields, which means that all content fields are placeable when attached to a content type.
 
 #### Snippets
 
-The Snippets category has two types of elements by default: One is a generic **Shape **element, and the others are based on a convention where Razor files are named in a certain way. These elements are called **Snippets**.
+The Snippets category has two types of elements by default: One is a generic **Shape **element, and the others are based on a convention where Razor files are named in a certain way.
+ These elements are called **Snippets**.
 
 #### Snippet Elements
 

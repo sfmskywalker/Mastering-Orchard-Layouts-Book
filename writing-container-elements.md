@@ -4,218 +4,150 @@ In the previous chapter, we learned how to write custom elements. However, if yo
 
 ## Steps to Create a Container Element
 
-When writing custom container elements, you typically perform the following steps:
+When writing custom container elements, follow these steps:
 
-1.  Implement a class that derives from Container.
-
-2.  Implement a driver for your element.
-
-3.  Implement a mapper class that derives from LayoutModelMapBase&lt;T&gt; that takes care of mapping values between the layout editor and elements back and forth.
-
-4.  Implement a client-side model for the element as well as an Angular directive.
-
-5.  Implement a resource manifest provider that provides the client script to the layout editor.
-
-6.  Implement a shape table provider that invokes the resource manager to include the element resources.
+1. Implement a class that derives from `Container`.
+2. Implement a driver for your element.
+3. Implement a mapper class that derives from `LayoutModelMapBase<T>` that takes care of mapping values between the layout editor and elements back and forth.
+4. Implement a client-side model for the element as well as an Angular directive.
+5. Implement a resource manifest provider that provides the client script to the layout editor.
+6. Implement a shape table provider that invokes the resource manager to include the element resources.
 
 Most of the work when creating a custom container element goes into making it work with the layout editor. The primary reason for this is the fact that the layout editor has a client side model of elements, and it needs to know what the type of object is to be used on the client.
 
 The layout editor roughly divides elements into two categories:
 
-• Content elements \(Html, Image, Heading, etc.\)
+* Content elements \(Html, Image, Heading, etc.\)
+* Non-content elements \(Canvas, Grid, Row, Column\)
 
-• Non-content elements \(Canvas, Grid, Row, Column\)
+The distinction is made as follows: if a given element type declares its own Model Map, it means it has a specific client side \(JavaScript\) representation of that element. If not, the client side representation is always the `Content` JavaScript class.
 
-The distinction is made as follows: if a given element type declares its own Model Map, it means it has a specific client side \(JavaScript\) representation of that element. If not, the client side representation is always the Content JavaScript class.
+# Layout Model Mappers
 
-Layout Model Mappers
-
-“Layout model mapping” is a process that converts a list of server-side Element objects into a JSON format that the layout editor can work with, and the other way around: to convert a layout editor data JSON string back into a list of Element objects.
+"Layout model mapping" is a process that converts a list of server-side `Element` objects into JSON format that the layout editor can work with, and the other way around: to convert a layout editor data JSON string back into a list of `Element` objects.
 
 The reason we need to do that is because the layout editor requires its own JSON schema to work with elements, so we need a mechanism to serialize elements into that JSON format.
 
 Another way of thinking about layout model mapping is to think of it as a provider for the client-side representation of your custom element.
 
-To implement a model map for your own element, you need to implement the ILayoutModelMap interface and provide a DTO to be serialized into JSON, or parse a JNode object back into an Element instance.
+To implement a model map for your own element, you need to implement the `ILayoutModelMap` interface and provide a DTO to be serialized into JSON, or parse a JNode object back into an `Element` instance.
 
+The `ILayoutModelMap` interface has the following members:
 
-
-The ILayoutModelMap interface has the following members:
-
-Member  Description
-
-Priority  If multiple model maps can convert from and to a given element type, the one with the highest priority is selected to do that job. This is useful in cases such as the ContentModelMap, which can basically map any element that is not a container. So in order to allow other non-container elements to provide their own model map implementation, they need to be able to provide a higher priority.
-
-LayoutElementType Returns the client-side “class” name of the element. When the layout editor needs to instantiate an element based on its JSON data, it uses this name to instantiate an object of that class.
-
-CanMap  Returns true if this model map implementation can map the specified element, false otherwise.
-
-ToElement Returns an Element object initialized with the provided JNode data. This is a way for the client-side layout editor to pass in data set by the user and into the element as stored on the server side. Examples of this are the HtmlId, HtmlClass and HtmlStyle properties on an Element.
-
-FromElement The counterpart of ToElement. This method expects implementations to populate the specified JNode with data from the specified Element.
+| Member | Description |
+| --- | --- | --- |
+| Priority | If multiple model maps can convert from and to a given element type, the one with the highest priority is selected to do that job. This is useful in cases such as the ContentModelMap, which can basically map any element that is not a container. So in order to allow other non-container elements to provide their own model map implementation, they need to be able to provide a higher priority. |
+| LayoutElementType | Returns the client-side “class” name of the element. When the layout editor needs to instantiate an element based on its JSON data, it uses this name to instantiate an object of that class. |
+| CanMap | Returns true if this model map implementation can map the specified element, false otherwise. |
+| ToElement | Returns an Element object initialized with the provided JNode data. This is a way for the client-side layout editor to pass in data set by the user and into the element as stored on the server side. Examples of this are the HtmlId, HtmlClass and HtmlStyle properties on an Element. |
+| FromElement | The counterpart of ToElement. This method expects implementations to populate the specified JNode with data from the specified Element. |
 
 The layout editor allows the user to manipulate element properties in two ways:
 
-1.  Via the Element Editor Dialog.
+1. Via the Element Editor Dialog.
+2. Directly from the Layout Editor.
 
-2.  Directly from the Layout Editor.
+The first way is by invoking the element editor dialog, where element drivers are involved to render the editor UI and handle form submissions. The resulting element data is then sent back as a JSON string to the layout editor via JavaScript and stored in a `Data` property on the client-side model that represents the layout and its individual elements. 
 
-The first way is by invoking the element editor dialog, where element drivers are involved to render the editor UI and handle form submissions. The resulting element data is then sent back as a JSON string to the layout editor via JavaScript and stored in a Data property on the client-side model that represents the layout and its individual elements. 
+The second way is to edit element properties directly from the layout editor. This set of properties is not typically the same set as shown in the element editor dialog. Instead, it shows common properties such as `HtmlId`, `HtmlClasses` and `HtmlStyles`. These property values are set on a client-side model representing the layout and its individual elements, so we need a way to include this information when everything gets submitted to the server.
 
-The second way is to edit element properties directly from the layout editor. This set of properties is not typically the same set as shown in the element editor dialog. Instead, it shows common properties such as HtmlId, HtmlClasses and HtmlStyles. These property values are set on a client-side model representing the layout and its individual elements, so we need a way to include this information when everything gets submitted to the server.
+That is where the layout model mappers come into play.
 
-That is where the layout model mappers come into play. 
+# Client Side Support
 
-Client Side Support
+Implementing the client side story of container elements involves the following steps:
 
-Implementing the client side story of container elements essentially involves the following four steps:
-
-1.  Implement the client-side model of the element
-
-2.  Implement the directive \(the layout editor is implemented with AngularJS\)
-
-3.  Implement the template for the directive
-
-4.  Register the element with the client-side element factory
+1. Implement the client-side model of the element
+2. Implement the directive \(the layout editor is implemented with AngularJS\)
+3. Implement the template for the directive
+4. Register the element with the client-side element factory
 
 Once you got all that in place, you'll be able to add your custom container element onto the canvas, and add any other elements to it.
 
 Let's dive in and see what it looks like when actually implementing a container element.
 
-Trying it out: Writing a Tile element
+# Try it out: Writing a Tile element
 
-In this walkthrough, we'll implement a custom container element called Tile that enables the user to specify a background image. Once you understand how to implement container elements, you'll be able to create any other type of elements.
+In this walkthrough, we'll implement a custom container element called `Tile` that enables the user to specify a background image. Once you understand how to implement container elements, you'll be able to create any other type of elements.
 
 The Tile element will have the following features:
 
-
-
-
-
-• A Tile element can contain any other type of element.
-
-• A Tile element can optionally have a background image.
-
-• A Tile element can optionally have a background size.
-
-• The user will be able to change the background size property using the quick properties accessor.
-
-
+* A Tile element can contain any other type of element.
+* A Tile element can optionally have a background image.
+* A Tile element can optionally have a background size.
+* The user will be able to change the background size property using the quick properties accessor.
 
 The quick properties accessor is the little pop-out window that appears when you click the "Edit \[element type\] properties \(Space\)" icon in an element's toolbar, and offer a way for users to quickly change certain properties without having to launch the element editor's dialog. Common to all elements are properties such as Html ID, CSS Classes, CSS Styles and Visibility Rule. However, as we'll see in this walkthrough, custom elements have complete control over this set of properties.
 
 Since the Tile element stores a reference to a content item \(the background image\), we'll need to make sure that we export the content item identity, since the content item id \(a primary key value\) will be useless when importing.
 
-To learn more about content identity, check out Bertrand Leroy’s blog post on the matter: http://weblogs.asp.net/bleroy/identity-in-orchard-import-export 
+To learn more about content identity, check out Bertrand Leroy’s blog post on the matter: [http://weblogs.asp.net/bleroy/identity-in-orchard-import-export](http://weblogs.asp.net/bleroy/identity-in-orchard-import-export) 
 
-The Tile Element
+## The Tile Element
 
-First of all, we need to create an element class called Tile, which will override the Category and ToolboxIcon properties, and add two additional properties: the BackgroundImageId, which will store the image content item ID that the user selected, and the BackgroundSize property, which will control how the background image gets applied in terms of the background-size CSS attribute. The following code listing shows the complete Tile class:
+First of all, we need to create an element class called `Tile`, which will override the `Category` and `ToolboxIcon` properties, and add two additional properties: the `BackgroundImageId`, which will store the image content item ID that the user selected, and the `BackgroundSize` property, which will control how the background image gets applied in terms of the background-size CSS attribute. The following code listing shows the complete Tile class:
 
+```csharp
 using Orchard.Layouts.Elements;
-
 using Orchard.Layouts.Helpers;
-
-
 
 namespace OffTheGrid.Demos.Layouts.Elements {
 
     public class Tile : Container {
 
         public override string Category =&gt; "Demo";
-
         public override string ToolboxIcon =&gt; "\uf03e";
 
-
-
         public int? BackgroundImageId {
-
             get { return this.Retrieve\(x =&gt; x.BackgroundImageId\); }
-
             set { this.Store\(x =&gt; x.BackgroundImageId, value\); }
-
         }
-
-
 
         public string BackgroundSize {
-
             get { return this.Retrieve\(x =&gt; x.BackgroundSize\); }
-
             set { this.Store\(x =&gt; x.BackgroundSize, value\); }
-
         }
-
     }
-
 }
 
-The Tile Driver
+## The Tile Driver
 
 The Tile driver will be responsible for the following things:
 
-• Handling the Tile element editor;
-
-• Handling the OnDisplaying event to prepare some data when the Tile element is being rendered. We need to load the selected background image by the ID that is stored in the BackgroundImageId property.
-
-• Implementing Import/Export for the Tile in order to export/import the background image content item identity.
+* Handling the Tile element editor.
+* Handling the OnDisplaying event to prepare some data when the Tile element is being rendered. We need to load the selected background image by the ID that is stored in the `BackgroundImageId` property.
+* Implementing Import/Export for the Tile in order to export/import the background image content item identity.
 
 The following code shows the complete implementation of the Tile driver:
 
+```csharp
 using System.Linq;
-
 using OffTheGrid.Demos.Layouts.Elements;
-
 using OffTheGrid.Demos.Layouts.ViewModels;
-
 using Orchard.ContentManagement;
-
 using Orchard.Layouts.Framework.Display;
-
 using Orchard.Layouts.Framework.Drivers;
-
 using Orchard.Layouts.Helpers;
-
 using Orchard.MediaLibrary.Models;
 
-
-
 namespace OffTheGrid.Demos.Layouts.Drivers {
-
     public class TileDriver : ElementDriver&lt;Tile&gt; {
-
         private readonly IContentManager \_contentManager;
 
-
-
         public TileDriver\(IContentManager contentManager\) {
-
-            \_contentManager = contentManager;
-
+            _contentManager = contentManager;
         }
 
-
-
         protected override EditorResult OnBuildEditor\(Tile element, ElementEditorContext context\) {
-
             var viewModel = new TileViewModel {
-
                 BackgroundImageId = element.BackgroundImageId?.ToString\(\),
-
                 BackgroundSize = element.BackgroundSize
-
             };
 
-
-
             // If an Updater is specified,
-
             // it means the element editor form is being submitted
-
             // and we need to read and store the submitted data.
-
-            if\(context.Updater != null\) {
-
+            if(context.Updater != null) {
                 if \(context.Updater.TryUpdateModel
 
                    \(viewModel, context.Prefix, null, null\)\) {
