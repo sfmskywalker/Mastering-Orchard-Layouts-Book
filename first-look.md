@@ -1,9 +1,3 @@
----
-description: >-
-  In this chapter, we'll take a tour through the Layouts module and see how it
-  works from a user's perspective.
----
-
 # First Look
 
 ## The Main Players

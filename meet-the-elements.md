@@ -28,28 +28,26 @@ The Row element is represented in the toolbox as 7 preconfigured Row elements. T
 
 ![The Row element is represented in the toolbox as a set of preconfigured rows.](.gitbook/assets/figure-3-1.png)
 
-The Row element has a specific toolbar command called **Distribute columns evenly**. 
+The Row element has a specific toolbar command called **Distribute columns evenly**.
 
 ![The &quot;Distribute columns evenly&quot; toolbar command.](.gitbook/assets/2nd-row-element-distribute-columns-tool-button.png)
 
-As its name implies, this command will evenly distribute the width of the columns of the row based on a maximum size of 12 columns. For example, if a Row element has 4 columns with varying sizes, and the maximum size is 12, each column will be re-sized to be exactly 3 units in size. 
+As its name implies, this command will evenly distribute the width of the columns of the row based on a maximum size of 12 columns. For example, if a Row element has 4 columns with varying sizes, and the maximum size is 12, each column will be re-sized to be exactly 3 units in size.
 
 #### Column
 
 Unlike the Grid and Row elements, the Column element can hold any type of child elements, except for Row and Column elements. Columns themselves can only be contained by Row elements.
 
-A column has two specialized properties: **Width **and **Offset**. Together, these values make up the total size of the column. 
+A column has two specialized properties: **Width **and **Offset**. Together, these values make up the total size of the column.
 
-**Adding Columns
-**
+**Adding Columns **
 
-There are various ways to add columns to a row. 
+There are various ways to add columns to a row.
 
-*  Add any number of Column elements from the Toolbox.
-*  If the Row element contains at least one Column, you can split that column into two. Repeat this until you have the desired number of columns.
+* Add any number of Column elements from the Toolbox.
+* If the Row element contains at least one Column, you can split that column into two. Repeat this until you have the desired number of columns.
 
-**Offsetting
-**
+**Offsetting **
 
 Another property of the Column element is its **Offset**. By default, the offset for any column is 0. Increasing the offset increases the overall size of the column. You typically use an offset if you want to leave a blank that is a multiple of the grid kern. Otherwise, CSS is almost always a better option to add a margin or padding.
 
@@ -70,13 +68,12 @@ The Content category contains elements that are pure content.
 #### Break
 
 The Break element is probably one of the simplest elements available. It has no specialized properties. All it does is render the &lt;hr&gt; Html element.
- 
 
 #### Content Item
 
 The Content Item element is very similar to the Content Picker Field and enables the user to select one or more content items to render inline on the canvas.
 
-When adding or editing a Content Item element, the user is presented with a dialog window displaying the content properties of the element. 
+When adding or editing a Content Item element, the user is presented with a dialog window displaying the content properties of the element.
 
 The element has two specialized properties:
 
@@ -89,7 +86,7 @@ The Content Item element enables you to render the same content item at various 
 
 #### Heading
 
-The Heading element maps directly to the `<h1> `to `<h6>` Html elements, and has two specialized properties:
+The Heading element maps directly to the `<h1>`to `<h6>` Html elements, and has two specialized properties:
 
 * Level
 * Text
@@ -97,8 +94,6 @@ The Heading element maps directly to the `<h1> `to `<h6>` Html elements, and has
 The **Level** indicates the size of the heading and ranges from 1 to 6. For example, if you specify level 3, the `<h3>` tag will be rendered.
 
 ![The Heading element properties.](.gitbook/assets/2nd-element-heading-properties.png)
-
- 
 
 The following is an example of Html output when specifying level 6 and the text "Hello Layouts!":
 
@@ -108,7 +103,7 @@ The following is an example of Html output when specifying level 6 and the text 
 
 #### Html
 
-The Html element is probably the most commonly used one when it comes to placing content onto the canvas. 
+The Html element is probably the most commonly used one when it comes to placing content onto the canvas.
 
 It has a single property called Html, which stores the Html markup. Use this element whenever you want to display textual content anywhere on the canvas.
 
@@ -137,12 +132,12 @@ You may be wondering why you would want to use this element over the Html elemen
 The Projection element works the sames as the Projection Part and allows the user to select a Query to project a list of content items.
 
 {% hint style="info" %}
- You need to enable the **Projection Element** feature before you can use the Projection element.
+You need to enable the **Projection Element** feature before you can use the Projection element.
 {% endhint %}
 
 #### Shape
 
-The Shape element is a simple yet very useful element that has just one content property called **Shape Type**. If you provide the shape name of an existing shape here, then that shape will be rendered wherever you place the Shape element. 
+The Shape element is a simple yet very useful element that has just one content property called **Shape Type**. If you provide the shape name of an existing shape here, then that shape will be rendered wherever you place the Shape element.
 
 {% hint style="info" %}
 When you enable the **Templates** feature and create a template, you can use that as the shape type for the Shape element.
@@ -168,7 +163,9 @@ The Image element allows the user to pick a single image content item from the m
 The Media Item element allows the user to pick more than one media item. The user can control what display type to use when rendering the selected media items. Use the Media Item element when:
 
 * You want to display a list of various types of media.
+
   \
+
 * You want to control the display type being used to render each media item.
 
 #### Vector Image
@@ -202,13 +199,14 @@ Content parts aren’t placeable by default. The **Placeable** property is a new
 The Fields category is similar to the way the Part elements work, but with a few differences:
 
 * Only content fields attached to the current content item's type are displayed as elements
+
   .
+
 * There is no Placeable property for content fields, which means that all content fields are placeable when attached to a content type.
 
 #### Snippets
 
-The Snippets category has two types of elements by default: One is a generic **Shape **element, and the others are based on a convention where Razor files are named in a certain way.
- These elements are called **Snippets**.
+The Snippets category has two types of elements by default: One is a generic **Shape **element, and the others are based on a convention where Razor files are named in a certain way. These elements are called **Snippets**.
 
 #### Snippet Elements
 
@@ -229,7 +227,7 @@ What's more, Snippets can be made configurable. We will how this works in detail
 Elements in the UI category contain various UI elements such as _menus_, _breadcrumbs_ and _notifications_.
 
 {% hint style="info" %}
- The UI elements are provided by the **UI Elements** feature.
+The UI elements are provided by the **UI Elements** feature.
 {% endhint %}
 
 #### Widgets
@@ -333,6 +331,4 @@ In this chapter, we got to meet all of the elements that ship with Orchard out o
 We went over each element in detail to get a better understanding of each element’s intended use.
 
 The set of elements can be extended by custom element harvesters, which are responsible for providing elements to the system. Module developers can create custom harvesters, into which we will look in great detail in Part 3 - Extensibility.
-
-
 
