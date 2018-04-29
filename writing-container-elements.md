@@ -89,7 +89,7 @@ To learn more about content identity, check out Bertrand Leroy’s blog post on 
 
 First of all, we need to create an element class called `Tile`, which will override the `Category` and `ToolboxIcon` properties, and add two additional properties: the `BackgroundImageId`, which will store the image content item ID that the user selected, and the `BackgroundSize` property, which will control how the background image gets applied in terms of the background-size CSS attribute. The following code listing shows the complete Tile class:
 
-```text
+```csharp
 using Orchard.Layouts.Elements;
 using Orchard.Layouts.Helpers;
 
@@ -122,7 +122,7 @@ The Tile driver will be responsible for the following things:
 
 The following code shows the complete implementation of the Tile driver:
 
-```text
+```csharp
 using System.Linq;
 using OffTheGrid.Demos.Layouts.Elements;
 using OffTheGrid.Demos.Layouts.ViewModels;
@@ -231,7 +231,7 @@ Let's go over that driver method-by-method.
 
 The `OnBuildEditor` method takes care of both displaying the element editor as well as handling post-back. The first 4 lines initialize a new view model used by the editor template:
 
-```text
+```csharp
 var viewModel = new TileViewModel {
     BackgroundImageId = element.BackgroundImageId?.ToString(),
     BackgroundSize = element.BackgroundSize
@@ -242,7 +242,7 @@ This simply constructs a new `TileViewModel `object and initializes it with exis
 
 The `TileViewModel` is defined as follows:
 
-```text
+```aspnet
 using Orchard.MediaLibrary.Models;
 namespace OffTheGrid.Demos.Layouts.ViewModels {
     public class TileViewModel {
@@ -257,7 +257,7 @@ In case you’re wondering about the `BackgroundImageId` being of type `string` 
 
 After initializing the view model, we check to see if we're in “post-back” mode by checking whether the Updater is null or not. The Updater is specified by the framework when the user submitted the form on the element editor dialog, and really is just a reference to a controller. If the Updater is not null, we go ahead and use it to model bind the posted values against our view model like this:
 
-```text
+```csharp
 // If an Updater is specified, it means the element editor form is being submitted
 // and we need to read and store the submitted data.
 if(context.Updater != null) {
@@ -273,7 +273,7 @@ Notice that we're converting the `viewModel.BackgroundImageId` from string to `I
 
 After handling the post-back scenario, the method continues by loading the selected background image using the content manager:
 
-```text
+```aspnet
  viewModel.BackgroundImage = GetBackgroundImage(element, VersionOptions.Latest);
 ```
 
@@ -344,7 +344,7 @@ The reason we need to implement these methods here is because we are referencing
 
 The exporting code looks like this:
 
-```text
+```csharp
 // Use the content manager to get the content identities.
 var backgroundImageIdentity = _contentManager.GetItemMetadata(backgroundImage).Identity;
 
@@ -356,7 +356,7 @@ Notice the usage of the `ExportableData `dictionary, which is where you store in
 
 The importing code mirrors the exporting code:
 
-```text
+```csharp
     // Read the imported content identity from the ExportableData dictionary.
     var backgroundImageIdentity = context.ExportableData.Get("BackgroundImage");
 
@@ -385,7 +385,9 @@ The `context.Session` object maintains a dictionary of imported content items, k
 
 In order for the Tile element to be able to render its child elements, It needs its own shape template, so create a file called **Tile.cshtml** in the **Views/Elements folder**. Its contents should look like this:
 
-```text
+{% code-tabs %}
+{% code-tabs-item title="Views/Elements/Tile.cshtml" %}
+```csharp
 @using Orchard.ContentManagement;
 @using Orchard.DisplayManagement.Shapes
 @using Orchard.Layouts.Helpers
@@ -406,6 +408,8 @@ In order for the Tile element to be able to render its child elements, It needs 
 @DisplayChildren(Model)
 @tagBuilder.EndElement
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 The first thing this view does is creating an `OrchardTagBuilder`. Then we check if we have a non-null `BackgroundImage `available, which is set from the `OnDisplaying `method in the driver.
 
@@ -447,7 +451,9 @@ These files won't be referenced by our views directly. Instead, we'll provide a 
 
 The Assets.json file needs to live in the root of the module, and will have the following contents:
 
-```text
+{% code-tabs %}
+{% code-tabs-item title="Assets.json" %}
+```javascript
  [
     {
         "inputs": [
@@ -455,6 +461,7 @@ The Assets.json file needs to live in the root of the module, and will have the 
         ],
         "output": "Styles/TileElement.css"
     },
+
     {
         "inputs": [
             "Assets/Elements/Tile/Directive.js",
@@ -464,6 +471,8 @@ The Assets.json file needs to live in the root of the module, and will have the 
     }
 ]
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 If you have worked with Gulp before, the structure of this JSON file should look quite familiar. It's basically an array with inputs/output objects, where the inputs are compiled, combined, minified and stored in the output file. The specified paths are relative to the module's root.
 
@@ -491,12 +500,15 @@ With that in place, we are ready to provide actual contents to each asset file. 
 
 The following code shows the minimum amount of boilerplate code required to make the Tile element a container element:
 
-```text
+{% code-tabs %}
+{% code-tabs-item title="Assets/Elements/Tile/Model.js" %}
+```javascript
 var LayoutEditor;
 
 (function (LayoutEditor) {
 
     // The constructor.
+
     LayoutEditor.Tile = function (data, contentType, htmlId, htmlClass, htmlStyle, isTemplated, rule, hasEditor, children) {
         var self = this;
 
@@ -558,10 +570,12 @@ var LayoutEditor;
 })(LayoutEditor || (LayoutEditor = {}));
 
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 It is not complex code, but there are quite a few things that aren't very obvious. The inline comments should be self-explanatory, but I will go over some of the more interesting aspects section by section.
 
-```text
+```javascript
 // Inherit from the Element base class.
 LayoutEditor.Element.call(self, "Tile", data, htmlId, htmlClass, htmlStyle, isTemplated, rule);
 ```
@@ -570,862 +584,614 @@ As the comment indicates, this makes the `Tile `class inherit from the `Element`
 
 In addition to inheriting from Element, the Tile class also inherits from Container:
 
-```text
+```javascript
 // Inherit from the Container base class.
 LayoutEditor.Container.call(self, ["Canvas", "Grid", "Content"], children);
 ```
 
-That call turns the Tile into an actual container so it can receive elements. The second argument being passed in is an array of element types that the Tile element can contain. However, this list does not need to include every element type out there, since any element whose isContainable field is set to true can be added to any container. This means that the Tile element itself for example can be added to other Tile elements, since we're setting exactly that property on the next line:
+That call turns the Tile into an actual container so it can receive elements. The second argument being passed in is an array of element types that the Tile element can contain. However, this list does not need to include every element type out there, since any element whose isContainable field is set to `true` can be added to any container. This means that the Tile element itself for example can be added to other Tile elements, since we're setting exactly that property on the next line:
 
+```javascript
 // This Tile element is containable, which means it can be added to any container, including Tiles.
-
 self.isContainable = true;
+```
 
 The following line is key to turn our element into a drop target:
 
+```javascript
 // The "layout-common-holder" CSS class is used by the layout editor to identify drop targets.
-
 self.dropTargetClass = "layout-common-holder";
-
-I personally think this CSS class value should have been set by default, but for now we'll just have to do it ourselves.
+```
 
 The same goes for the next and final block of code of the constructor function:
 
+```javascript
 // Implements the toObject serialization function.
-
 // This is called when the layout is being serialized into JSON.
-
 var toObject = self.toObject; // Get a reference to the default implementation before we override it.
-
-self.toObject = function \(\) {
-
-```text
-var result = toObject\(\); // Invoke the original \(base\) implementation.
-
-result.children = self.childrenToObject\(\);
-
-return result;
-```
-
+self.toObject = function () {
+    var result = toObject(); // Invoke the original (base) implementation.
+    result.children = self.childrenToObject();
+    return result;
 };
-
-The above code overrides the toObject function in order to have its children be serialized as well. This code is so generic that it should probably be handled by the Container base class. But at this point in time, we’ll just have to do this also ourselves.
-
-The layout editor invokes toObject on all elements whenever the elements are being serialized into JSON.
-
-The final piece of the Model.js file registers the Tile class with the layout editor's element factory:
-
-// Registers the factory function with the element factory.
-
-LayoutEditor.registerFactory\("Tile", function \(value\) {
-
-```text
-var tile = new LayoutEditor.Tile\(
-
-    value.data,
-
-    value.contentType,
-
-    value.htmlId,
-
-    value.htmlClass,
-
-    value.htmlStyle,
-
-    value.isTemplated,
-
-    value.rule,
-
-    value.hasEditor,
-
-    LayoutEditor.childrenFrom\(value.children\)\);
-
-
-
-return tile;
 ```
 
-}\);
+The above code overrides the `toObject` function in order to have its children be serialized as well. The layout editor invokes `toObject `on all elements whenever the elements are being serialized into JSON.
 
-The first argument is again the client-side element type \(“Tile”\) which serves as a key into an internal dictionary. The second argument takes a function that is invoked by the factory when a new Tile element needs to be instantiated. This is where we “new up” the Tile class, passing in various bits and pieces of the specified value argument. This value is an object that contains all the values provided from the \(yet to be created\) model map class.
+The final piece of the Model.js file registers the `Tile` class with the layout editor's element factory:
 
-The Tile Directive
+```javascript
+// Registers the factory function with the element factory.
+LayoutEditor.registerFactory("Tile", function (value) {
+    var tile = new LayoutEditor.Tile(
+        value.data,
+        value.contentType,
+        value.htmlId,
+        value.htmlClass,
+        value.htmlStyle,
+        value.isTemplated,
+        value.rule,
+        value.hasEditor,
+        LayoutEditor.childrenFrom(value.children));
+
+    return tile;
+});
+```
+
+The first argument is the client-side element type \(“Tile”\) which serves as a key into an internal dictionary. The second argument takes a function that is invoked by the factory when a new Tile element needs to be instantiated. This is where we “new up” the `Tile `class, passing in various bits and pieces of the specified value argument. This value is an object that contains all the values provided from the \(yet to be created\) model map class.
+
+#### The Tile Directive
 
 In addition to implementing a client-side model for the tile element, we also need to implement an Angular directive so that Angular templates can render the elements.
 
-The Tile directive Directive.js requires the following code in order for it to function as a container:
+The Tile directive defined in **Directive.js** requires the following code in order for it to function as a container:
 
+{% code-tabs %}
+{% code-tabs-item title="Assets/Elements/Tile/Directive.js" %}
+```javascript
 angular
+    .module("LayoutEditor")
+    .directive("orcLayoutTile", ["scopeConfigurator", "environment",
+        function (scopeConfigurator, environment) {
 
-```text
-.module\("LayoutEditor"\)
-
-.directive\("orcLayoutTile", \["scopeConfigurator", "environment",
-
-    function \(scopeConfigurator, environment\) {
-
-        return {
-
-            restrict: "E",
-
-            scope: { element: "=" },
-
-            controller: \["$scope", "$element", "$attrs",
-
-                function \($scope, $element, $attrs\) {
-
-                    scopeConfigurator.configureForElement\($scope, $element\);
-
-                    scopeConfigurator.configureForContainer\($scope, $element\);
-
-                    $scope.sortableOptions\["axis"\] = "y";
-
-                }
-
-            \],
-
-            templateUrl: environment.templateUrl\("Tile"\),
-
-            replace: true
-
-        };
-
-    }
-
-\]\);
+            return {
+                restrict: "E",
+                scope: { element: "=" },
+                controller: ["$scope", "$element", "$attrs",
+                    function ($scope, $element, $attrs) {
+                        scopeConfigurator.configureForElement($scope, $element);
+                        scopeConfigurator.configureForContainer($scope, $element);
+                        $scope.sortableOptions["axis"] = "y";
+                    }
+                ],
+                templateUrl: environment.templateUrl("Tile"),
+                replace: true
+            };
+        }
+    ]);
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
-A few important aspects worth mentioning:
+A few important aspects to note:
 
-For starters, it is important that the directive is defined as part of the “LayoutEditor” Angular module, and that the directive name starts with “orcLayout”, followed by the client-side element type name “Tile”. This is a convention used by the orcLayoutChild directive that is provided by the Layouts module.
+For starters, it is important that the directive is defined as part of the `"LayoutEditor"` Angular module, and that the directive name starts with `"orcLayout"`, followed by the client-side element type name `"Tile"`. This is a convention used by the `orcLayoutChild` directive that is provided by the Layouts module.
 
-Next, we need to setup the controller function such that it configures the Angular $scope \(which is more or less the model of the directive\) using the injected scopeConfigurator, which adds all the necessary functions to the scope and the element. Also, since we're configuring a container, we need to configure the sortableOptions, which is specific to the Sortable jQueryUI widget used by the layout editor to implement drag & drop.
+Next, we need to setup the controller function such that it configures the Angular `$scope` \(which is more or less the model of the directive\) using the injected `scopeConfigurator`, which adds all the necessary functions to the scope and the element. Also, since we're configuring a container, we need to configure the sortableOptions, which is specific to the Sortable jQueryUI widget used by the layout editor to implement drag & drop.
 
-Finally, we need to configure the directive's template, which we do using the injected environment service and its templateUrl function. This function constructs a relative path to the Template controller of the Layouts module, which returns a view based on the specified parameter. When passing in “Tile”, the resulting template URL will become: “Admin/Layouts/Template/Get/Tile”. The TemplateController creates a shape based on the element name being passed in using the following format: “LayoutEditor\_Template\_{0}”.
+Finally, we need to configure the directive's template, which we do using the injected environment service and its templateUrl function. This function constructs a relative path to the Template controller of the Layouts module, which returns a view based on the specified parameter. When passing in “Tile”, the resulting template URL will become: `"Admin/Layouts/Template/Get/Tile"`. The `TemplateController` creates a shape based on the element name being passed in using the following format: `"LayoutEditor_Template_{0}"`.
 
-This means that you’ll have to provide a Shape template named “LayoutEditor.Template.Tile.cshtml” for the Tile’s directive.
+This means that you have to provide a Shape template named `"LayoutEditor.Template.Tile.cshtml"` for the Tile’s directive.
 
-The Tile Directive Template
+#### The Tile Directive Template
 
 After implementing the element's directive, we need to provide the directive's template, which is implemented as a shape template.
 
-When implementing a directive’s template, you will need to keep in mind that that will be the template used when the element is rendered in the layout editor, and not Tile.cshtml or Tile.Design.cshtml shape template, if you specified any. The directive basically ‘takes over’ the rendering of the element when used in the layout editor.
+When implementing a directive’s template, you will need to keep in mind that that will be the template used when the element is rendered in the layout editor, and not **Tile.cshtml** or **Tile.Design.cshtml** shape template, if you specified any. The directive basically ‘takes over’ the rendering of the element when used in the layout editor.
 
-&gt; The reason regular Content client-side elements are able to render their templates using the Design display type is because those elements are actually pre-rendered on the server side. The resulting Html is then passed into the Content client-side model, and used by its Angular directive's template to display it. We could in principle do the same for the Tile element, if only it didn't need the ability to receive child elements from drag & drop operations for example.
+{% hint style="info" %}
+ The reason regular Content client-side elements are able to render their templates using the Design display type is because those elements are actually pre-rendered on the server side. The resulting HTML is then passed into the Content client-side model, and used by its Angular directive's template to display it. We could in principle do the same for the Tile element, if only it didn't need the ability to receive child elements from drag & drop operations for example.
+{% endhint %}
 
-Let’s go ahead and create a Razor file called “LayoutEditor.Template.Tile.cshtml” with the following markup:
+Let’s go ahead and create a Razor file called `"LayoutEditor.Template.Tile.cshtml"` with the following markup:
 
-&lt;div class="layout-element-wrapper layout-element-background" ng-class="{'layout-container-empty': getShowChildrenPlaceholder\(\)}"&gt;
+{% code-tabs %}
+{% code-tabs-item title="Views/LayoutEditor.Template.Tile.cshtml" %}
+```aspnet
+<div class="layout-element-wrapper layout-element-background" ng-class="{'layout-container-empty': getShowChildrenPlaceholder()}">
+    <ul class="layout-panel layout-panel-main">
+        <li class="layout-panel-item layout-panel-label">Tile</li>
+        <li class="layout-panel-item layout-panel-a
 
-```text
-&lt;ul class="layout-panel layout-panel-main"&gt;
+ction layout-panel-action-edit" ng-show="{{element.hasEditor}}" title="Edit tile (Enter)" ng-click="edit()"><i class="fa fa-code"></i></li>
+        @Display(New.LayoutEditor_Template_Properties(ElementTypeName: "tile"))
+        <li class="layout-panel-item layout-panel-action" title="@T("Delete tile (Del)")" ng-click="delete(element)" ng-show="element.canDelete()"><i class="fa fa-remove"></i></li>
+        <li class="layout-panel-item layout-panel-action" title="@T("Move tile up (Ctrl+Up)")" ng-click="element.moveUp()" ng-show="element.canMoveUp()"><i class="fa fa-chevron-up"></i></li>
+        <li class="layout-panel-item layout-panel-action" title="@T("Move tile down (Ctrl+Down)")" ng-click="element.moveDown()" ng-show="element.canMoveDown()"><i class="fa fa-chevron-down"></i></li>
+    </ul>
+    <div class="layout-container-children-placeholder" style="{{element.getTemplateStyles()}}">
+        @T("Drag an element from the toolbox and drop it here to add content.")
+    </div>
+    @Display(New.LayoutEditor_Template_Children())
+</div>
 
-    &lt;li class="layout-panel-item layout-panel-label"&gt;Tile&lt;/li&gt;
-
-    &lt;li class="layout-panel-item layout-panel-action layout-panel-action-edit" ng-show="{{element.hasEditor}}" title="Edit tile \(Enter\)" ng-click="edit\(\)"&gt;&lt;i class="fa fa-code"&gt;&lt;/i&gt;&lt;/li&gt;
-
-    @Display\(New.LayoutEditor\_Template\_Properties\(ElementTypeName: "tile"\)\)
-
-    &lt;li class="layout-panel-item layout-panel-action" title="@T\("Delete tile \(Del\)"\)" ng-click="delete\(element\)" ng-show="element.canDelete\(\)"&gt;&lt;i class="fa fa-remove"&gt;&lt;/i&gt;&lt;/li&gt;
-
-    &lt;li class="layout-panel-item layout-panel-action" title="@T\("Move tile up \(Ctrl+Up\)"\)" ng-click="element.moveUp\(\)" ng-show="element.canMoveUp\(\)"&gt;&lt;i class="fa fa-chevron-up"&gt;&lt;/i&gt;&lt;/li&gt;
-
-    &lt;li class="layout-panel-item layout-panel-action" title="@T\("Move tile down \(Ctrl+Down\)"\)" ng-click="element.moveDown\(\)" ng-show="element.canMoveDown\(\)"&gt;&lt;i class="fa fa-chevron-down"&gt;&lt;/i&gt;&lt;/li&gt;
-
-&lt;/ul&gt;
-
-&lt;div class="layout-container-children-placeholder" style="{{element.getTemplateStyles\(\)}}"&gt;
-
-    @T\("Drag an element from the toolbox and drop it here to add content."\)
-
-&lt;/div&gt;
-
-@Display\(New.LayoutEditor\_Template\_Children\(\)\)
 ```
-
-&lt;/div&gt;
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 All of the Angular bindings you see in this file are bindings against methods and fields of the $scope, which is configured by the Tile directive code. This template takes care of the entire rendering of the element's representation in the layout editor. This means that if we were to add additional information to our Tile model, we could bind that information with this template. This is how you can make our template more specific to the Tile element, which we'll see later on.
 
-Registering the Tile Assets
+#### Registering the Tile Assets
 
 Although we created various Tile assets and configured Gulp to generate their output files, we haven't actually included those files anywhere yet, and the Layouts module isn't doing that for us automatically. So how do we take care of that?
 
-Your initial thought may be to simply include those files from the Tile shape templates. But here’s the issue with that: those templates are rendered after the layout editor has been rendered and using AJAX calls. So even though the Script.Include and Style.Include calls would register the assets, it won't do you any good since the main page will already have been rendered, and the Html being sent back is just the Html output of a single element, not the entire Html document. So what is one to do?
+Your initial thought may be to simply include those files from the Tile shape templates. But these templates are rendered after the layout editor has been rendered and using AJAX calls. So even though the `Script.Include` and `Style.Include` calls would register the assets, it won't do you any good since the main page will already have been rendered, and the HTML being sent back is just the HTML output of a single element, not the entire HTMLdocument. So how do we solve that?
 
-We need a way to register the assets at the same time the layout editor is rendered. This will cause all elements’ assets to be rendered during the initial page load, which is good.
+We need a way to register the assets at the same time the layout editor is rendered. This will cause all elements’ assets to be rendered during the initial page load.
 
-Unfortunately, there's no formal extensibility point or event that we can handle to register those resources.
+We'll implement an `IShapeTableProvider` and handle the `OnDisplaying` event for the `EditorTemplate` shape, and check if its `TemplateName `value equals `"Parts.Layout"`, since that's the template name used by the `LayoutPartDriver `when creating the layout editor object.
 
-So we’ll just do the next best thing: implement an IShapeTableProvider and handle the OnDisplaying event for the EditorTemplate shape, and check if its TemplateName value equals “Parts.Layout”, since that's the template name used by the LayoutPartDriver when creating the layout editor object.
+{% hint style="warning" %}
+There is a limitation with this approach in case it’s used outside the context of the `LayoutPart`. For example, if you were to manually construct the `LayoutEditor` object yourself using the `ILayoutEditorFactory` and then render that object using the `Html.Editor` HTML helper, the layout editor would be rendered, but the handler in the shape table provider would not be triggered, since you would not be rendering any `EditorTemplate` shape. I created a GitHub issue for it with a proposed solution: [https://github.com/OrchardCMS/Orchard/issues/6221](https://github.com/OrchardCMS/Orchard/issues/6221).
+{% endhint %}
 
-&gt; This is sadly enough a major limitation currently with the layout editor in case it’s used outside the context of the LayoutPart. For example, if you were to manually construct the LayoutEditor object yourself using the ILayoutEditorFactory and then render that object using the Html.Editor Html helper, the layout editor would be rendered, but the handler created in the shape table provider would not be triggered, since you would not be rendering any EditorTemplate shape. So what do we do about it? Create a GitHub issue for it of course: [https://github.com/OrchardCMS/Orchard/issues/6221](https://github.com/OrchardCMS/Orchard/issues/6221).
+Let's go ahead and create the following class in the **Handlers **folder:
 
-Let's go ahead and create the following class in the Handlers folder:
-
+{% code-tabs %}
+{% code-tabs-item title="Handlers/TileResourceRegistrations.cs" %}
+```csharp
 using Orchard.DisplayManagement.Descriptors;
-
 using Orchard.Environment;
-
 using Orchard.UI.Resources;
 
 namespace OffTheGrid.Demos.Layouts.Handlers {
+    public class TileResourceRegistrations : IShapeTableProvider {
+        private readonly Work<IResourceManager> _resourceManager;
+        public TileResourceRegistrations(Work<IResourceManager> resourceManager) {
+            _resourceManager = resourceManager;
+        }
 
-```text
-public class TileResourceRegistrations : IShapeTableProvider {
+        public void Discover(ShapeTableBuilder builder) {
+            builder.Describe("EditorTemplate").OnDisplaying(context => {
+                if (context.Shape.TemplateName != "Parts.Layout")
+                    return;
 
-    private readonly Work&lt;IResourceManager&gt; \_resourceManager;
-
-    public TileResourceRegistrations\(Work&lt;IResourceManager&gt; resourceManager\) {
-
-        \_resourceManager = resourceManager;
-
+                _resourceManager.Value.Require("stylesheet", "TileElement");
+                _resourceManager.Value.Require("script", "TileElement");
+            });
+        }
     }
-
-
-
-    public void Discover\(ShapeTableBuilder builder\) {
-
-        builder.Describe\("EditorTemplate"\).OnDisplaying\(context =&gt; {
-
-            if \(context.Shape.TemplateName != "Parts.Layout"\)
-
-                return;
-
-
-
-            \_resourceManager.Value.Require\("stylesheet", "TileElement"\);
-
-            \_resourceManager.Value.Require\("script", "TileElement"\);
-
-        }\);
-
-    }
-
 }
+
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
-}
-
-What we're doing here is adding a handler for the OnDisplaying event of the EditorTemplate shape. If the template being displayed is the “Parts.Layout” template, we register two resources with the injected resource manager:
+What we're doing here is adding a handler for the `OnDisplaying `event of the `EditorTemplate `shape. If the template being displayed is the “Parts.Layout” template, we register two resources with the injected resource manager:
 
 * “TileElement” stylesheet
 * “TileElement” script
 
 We haven't defined those resources yet, but we'll get to that in a bit. You may be wondering why I didn’t use the Include method of the resource manager instead of the Require method, since then I wouldn't have to create a resource manifest provider that defines these resources. Well, the reason is that I need to ensure that the layout editor scripts are included before the Tile scripts, and the only way to ensure that is to have those resources depend on the layout editor’s resources. Since we can't declare that dependency directly, we will have to rely on a resource manifest provider to do so.
 
-The Resource Manifest Provider
+#### The Resource Manifest Provider
 
-Let's go ahead and create the following class in a new folder called ResourceManifests:
+Now that we have our client-side assets in place, we need to make them available as resources. Create the following class in a new folder called **ResourceManifests**:
 
+{% code-tabs %}
+{% code-tabs-item title="ResourceManifests/TileResourcemanifest.cs" %}
+```csharp
 using Orchard.UI.Resources;
 
 namespace OffTheGrid.Demos.Layouts.Handlers {
-
-```text
-public class TileResourceManifest : IResourceManifestProvider {
-
-    public void BuildManifests\(ResourceManifestBuilder builder\) {
-
-        var manifest = builder.Add\(\);
-
-        manifest.DefineStyle\("TileElement"\).SetUrl\("TileElement.min.css", "TileElement.css"\);
-
-        manifest.DefineScript\("TileElement"\).SetUrl\("TileElement.min.js", "TileElement.js"\).SetDependencies\("Layouts.LayoutEditor"\);
-
+    public class TileResourceManifest : IResourceManifestProvider {
+        public void BuildManifests(ResourceManifestBuilder builder) {
+            var manifest = builder.Add();
+            manifest.DefineStyle("TileElement").SetUrl("TileElement.min.css", "TileElement.css");
+            manifest.DefineScript("TileElement").SetUrl("TileElement.min.js", "TileElement.js").SetDependencies("Layouts.LayoutEditor");
+        }
     }
-
 }
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
-}
+Nothing fancy here, but notice the dependency on the `"Layouts.LayoutEditor"` resource, which is provided by the Layouts module.
 
-Nothing fancy here, but notice the dependency on the “Layouts.LayoutEditor” resource, which is provided by the Layouts module.
-
-The Tile Model Map
+#### The Tile Model Map
 
 Now that we have the server-side Tile element and client-side representation in place, it is time to implement the model map.
 
-Fortunately, this is easy. As mentioned earlier, you need to implement the ILayoutModelMap interface, but to make that process easier, a base class called LayoutModelMapBase&lt;T&gt; has been made available which we’ll use.
+As mentioned earlier, you need to implement the `ILayoutModelMap` interface, but to make that process easier, a base class called `LayoutModelMapBase<T>` has been made available which we’ll use.
 
-All we need to do is create a class that derives from LayoutModelMapBase&lt;T&gt;, substituting T with Tile:
+All we need to do is create a class that derives from `LayoutModelMapBase<T>`, substituting `T` with `Tile`:
 
+{% code-tabs %}
+{% code-tabs-item title="Handlers/TileModelMap.cs" %}
+```csharp
 using OffTheGrid.Demos.Layouts.Elements;
-
 using Orchard.Layouts.Services;
 
 namespace OffTheGrid.Demos.Layouts.Handlers {
 
-```text
-public class TileModelMap : LayoutModelMapBase&lt;Tile&gt; {
-
+    public class TileModelMap : LayoutModelMapBase<Tile> {
+    }
 }
+
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
+
+I mentioned earlier that the model map needs to implement the `LayoutElementType` property by returning the element type name \(“Tile”\). This is done for us by the base class, which is implemented as follows:
+
+```csharp
+ public virtual string LayoutElementType { get { return typeof(T).Name; } }
 ```
 
-}
+Since `T` is of type `Tile`, the resulting string will be “Tile”. Exactly what we want.
 
-I mentioned earlier that the model map needs to implement the LayoutElementType property by returning the element type name \(“Tile”\). This is done for us by the base class, which is implemented as follows:
-
-public virtual string LayoutElementType { get { return typeof\(T\).Name; } }
-
-Since T is of type Tile, the resulting string will be “Tile”. Exactly what we want.
-
-Test Drive
+### Test Drive
 
 When you launch the site now, you should be able to add the Tile element to the canvas and provide a background image and size, and see the element appear on the canvas. You should also be able to add elements to the Tile element.
 
 When you view the page on the front-end, you should see the Tile element with the configured background image and contained Html element rendered as expected.
 
-Figure 13.2 - A Grid element inside the Tile element with a background image.
+![A Grid element inside the Tile element with a background image.](.gitbook/assets/figure-13-2.png)
 
-Now, the reason we're not seeing the selected background image in the layout editor is because we're not rendering the element using the Elements/Tile.cshtml template. Instead, as mentioned before, the Angular directive's template use now used, which is necessary to render the Tile element’s children.
+The reason we're not seeing the selected background image in the layout editor is because we're not rendering the element using the `Elements/Tile.cshtml` template. Instead, as mentioned before, the Angular directive's template use now used, which is necessary to render the Tile element’s children.
 
-All this means is that instead of relying on the Elements/Tile.cshtml shape template to render the background, we'll just have to render it from the directive's template. This does require us to provide the image URL to the client-side Tile model and update the directive's template to model-bind against that value.
+All this means is that instead of relying on the `Elements/Tile.cshtml` shape template to render the background, we'll just have to render it from the directive's template. This requires us to provide the image URL to the client-side Tile model and update the directive's template to model-bind against that value.
 
 And while we're at it, we may just as well add support for editing the background size property of the element from the property editor, so that the user doesn't have to launch the element's editor dialog to change the background size. Instead, they would be able to do so directly from the layout editor and instantly see the result.
 
 Let's see how that works.
 
-Updating TileModelMap
+### Updating TileModelMap
 
-The first thing we need to do is get the background image URL and background image size down to our client-side Tile model. To do so, update the TileModelMap class as follows:
+The first thing we need to do is get the background image URL and background image size down to our client-side Tile model. To do so, update the `TileModelMap` class as follows:
 
+{% code-tabs %}
+{% code-tabs-item title="Handlers/TileModelMap.cs" %}
+```csharp
 using Newtonsoft.Json.Linq;
-
 using OffTheGrid.Demos.Layouts.Elements;
-
 using Orchard.ContentManagement;
-
 using Orchard.Layouts.Services;
-
 using Orchard.MediaLibrary.Models;
 
 namespace OffTheGrid.Demos.Layouts.Handlers {
+    public class TileModelMap : LayoutModelMapBase<Tile> {
+        private readonly IContentManager _contentManager;
 
-```text
-public class TileModelMap : LayoutModelMapBase&lt;Tile&gt; {
+        public TileModelMap(IContentManager contentManager) {
+            _contentManager = contentManager;
+        }
 
-    private readonly IContentManager \_contentManager;
+        public override void FromElement(Tile element, DescribeElementsContext describeContext, JToken node) {
+            base.FromElement(element, describeContext, node);
 
+            var backgroundImage = element.BackgroundImageId != null
+                ? _contentManager.Get<ImagePart>(element.BackgroundImageId.Value)
+                : default(ImagePart);
+            var backgroundImageUrl = backgroundImage?.As<MediaPart>().MediaUrl;
 
+            node["backgroundUrl"] = backgroundImageUrl;
+            node["backgroundSize"] = element.BackgroundSize;
+        }
 
-    public TileModelMap\(IContentManager contentManager\) {
+        protected override void ToElement(Tile element, JToken node) {
+            base.ToElement(element, node);
 
-        \_contentManager = contentManager;
-
+            element.BackgroundSize = (string)node["backgroundSize"];
+        }
     }
-
-
-
-    public override void FromElement\(Tile element, DescribeElementsContext describeContext, JToken node\) {
-
-        base.FromElement\(element, describeContext, node\);
-
-
-
-        var backgroundImage = element.BackgroundImageId != null
-
-            ? \_contentManager.Get&lt;ImagePart&gt;\(element.BackgroundImageId.Value\)
-
-            : default\(ImagePart\);
-
-        var backgroundImageUrl = backgroundImage?.As&lt;MediaPart&gt;\(\).MediaUrl;
-
-
-
-        node\["backgroundUrl"\] = backgroundImageUrl;
-
-        node\["backgroundSize"\] = element.BackgroundSize;
-
-    }
-
-
-
-    protected override void ToElement\(Tile element, JToken node\) {
-
-        base.ToElement\(element, node\);
-
-
-
-        element.BackgroundSize = \(string\)node\["backgroundSize"\];
-
-    }
-
 }
+
 ```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
-}
+The above code implements the `FromElement` and `ToElement` methods to map the background image URL and background size properties. Remember, these values are sent to and received from the client-side representation of the Tile element, which we’ll update next.
 
-The above code implements the FromElement and ToElement methods to map the background image URL and background size properties. Remember, these values are sent to and received from the client-side representation of the Tile element, which we’ll update next.
+### Updating Tile/Model.js
 
-Updating Tile/Model.js
+Since we want to model-bind the background image URL and background size properties with the Tile element directive, we'll need to stick those values into our Tile model:
 
-Since we want to model-bind the background image URL and background size properties with the Tile element directive, we'll need to stick those values into our Tile model. I highlighted the changed code in the updated Tile/Model.js file:
-
+{% code-tabs %}
+{% code-tabs-item title="Assets/Elements/Tile/Model.js" %}
+```javascript
 var LayoutEditor;
-
-\(function \(LayoutEditor\) {
-
-```text
-LayoutEditor.Tile = function \(data, contentType, htmlId, htmlClass, htmlStyle, isTemplated, rule, hasEditor, backgroundUrl, backgroundSize, children\) {
-
-    var self = this;
-
-
-
-    // Inherit from the Element base class.
-
-    LayoutEditor.Element.call\(self, "Tile", data, htmlId, htmlClass, htmlStyle, isTemplated, rule\);
-
-
-
-    // Inherit from the Container base class.
-
-    LayoutEditor.Container.call\(self, \["Canvas", "Grid", "Content"\], children\);
-
-
-
-    // This Tile element is containable, which means it can be added to any container, including Tiles.
-
-    self.isContainable = true;
-
-
-
-    // Used by the layout editor to determine if it should launch
-
-    // the element editor dialog when creating new Tile elements.
-
-    // Also used by our "LayoutEditor.Template.Tile.cshtml" view that is used as the layout-tile directive's template.
-
-    self.hasEditor = hasEditor;
-
-
-
-    // The element type name, which is sent back to the element editor controller when being edited.
-
-    self.contentType = contentType;
-
-
-
-    // The "layout-common-holder" CSS class is used by the layout editor to identify drop targets.
-
-    self.dropTargetClass = "layout-common-holder";
-
-
-
-    // The configured background image URL and background size.
-
-    self.backgroundUrl = backgroundUrl;
-
-    self.backgroundSize = backgroundSize;
-
-
-
-    // Implements the toObject serialization function.
-
-    // This is called when the layout is being serialized into JSON.
-
-    var toObject = self.toObject; // Get a reference to the default implementation before we override it.
-
-    self.toObject = function \(\) {
-
-        var result = toObject\(\); // Invoke the original \(base\) implementation.
-
-        result.children = self.childrenToObject\(\);
-
-        result.backgroundUrl = self.backgroundUrl;
-
-        result.backgroundSize = self.backgroundSize;
-
-        return result;
-
-    };
-
-
-
-    // Override the getEditorObject so we can include our backgroundSize property.
-
-    // This is called when the element editor dialog is invoked and we need to
-
-    // pass in the client side values.
-
-    var getEditorObjectBase = this.getEditorObject;
-
-    this.getEditorObject = function \(\) {
-
-        var props = getEditorObjectBase\(\);
-
-        props.BackgroundSize = self.backgroundSize;
-
-        return props;
-
-    }
-
-
-
-    // Executed after the element editor dialog closes.
-
-    this.applyElementEditorModel = function \(data\) {
-
-        self.backgroundUrl = data.backgroundUrl;
-
-        self.backgroundSize = data.backgroundSize;
-
-        self.applyBackground\(\);
-
-    }
-
-
-
-    this.hasBackground = function \(\) {
-
-        return self.backgroundUrl && self.backgroundUrl.length &gt; 0;
-
-    };
-
-
-
-    this.applyBackground = function \(\) {
-
-        if \(self.hasBackground\(\)\) {
-
-            var styles = {
-
-                "background-image": "url\('" + self.backgroundUrl + "'\)",
-
-                "background-size": self.backgroundSize && self.backgroundSize.length &gt; 0 ? self.backgroundSize : "cover"
-
-            };
-
-
-
-            if \(self.children.length == 0\)
-
-                self.templateStyles = styles;
-
-            else
-
-                self.containerTemplateStyles = styles;
-
+(function (LayoutEditor) {
+
+    LayoutEditor.Tile = function (data, contentType, htmlId, htmlClass, htmlStyle, isTemplated, rule, hasEditor, backgroundUrl, backgroundSize, children) {
+        var self = this;
+
+        // Inherit from the Element base class.
+        LayoutEditor.Element.call(self, "Tile", data, htmlId, htmlClass, htmlStyle, isTemplated, rule);
+
+        // Inherit from the Container base class.
+        LayoutEditor.Container.call(self, ["Canvas", "Grid", "Content"], children);
+
+        // This Tile element is containable, which means it can be added to any container, including Tiles.
+        self.isContainable = true;
+
+        // Used by the layout editor to determine if it should launch
+        // the element editor dialog when creating new Tile elements.
+        // Also used by our "LayoutEditor.Template.Tile.cshtml" view that is used as the layout-tile directive's template.
+        self.hasEditor = hasEditor;
+
+        // The element type name, which is sent back to the element editor controller when being edited.
+        self.contentType = contentType;
+
+        // The "layout-common-holder" CSS class is used by the layout editor to identify drop targets.
+        self.dropTargetClass = "layout-common-holder";
+
+        // The configured background image URL and background size.
+        self.backgroundUrl = backgroundUrl;
+        self.backgroundSize = backgroundSize;
+
+        // Implements the toObject serialization function.
+        // This is called when the layout is being serialized into JSON.
+        var toObject = self.toObject; // Get a reference to the default implementation before we override it.
+        self.toObject = function () {
+            var result = toObject(); // Invoke the original (base) implementation.
+            result.children = self.childrenToObject();
+            result.backgroundUrl = self.backgroundUrl;
+            result.backgroundSize = self.backgroundSize;
+            return result;
+        };
+
+        // Override the getEditorObject so we can include our backgroundSize property.
+        // This is called when the element editor dialog is invoked and we need to
+        // pass in the client side values.
+        var getEditorObjectBase = this.getEditorObject;
+        this.getEditorObject = function () {
+            var props = getEditorObjectBase();
+            props.BackgroundSize = self.backgroundSize;
+            return props;
         }
 
-        else {
-
-            self.templateStyles = {};
-
-            self.containerTemplateStyles = {};
-
+        // Executed after the element editor dialog closes.
+        this.applyElementEditorModel = function (data) {
+            self.backgroundUrl = data.backgroundUrl;
+            self.backgroundSize = data.backgroundSize;
+            self.applyBackground();
         }
 
-    }
+        this.hasBackground = function () {
+            return self.backgroundUrl && self.backgroundUrl.length > 0;
+        };
+
+        this.applyBackground = function () {
+            if (self.hasBackground()) {
+                var styles = {
+                    "background-image": "url('" + self.backgroundUrl + "')",
+                    "background-size": self.backgroundSize && self.backgroundSize.length > 0 ? self.backgroundSize : "cover"
+                };
+
+                if (self.children.length == 0)
+                    self.templateStyles = styles;
+                else
+                    self.containerTemplateStyles = styles;
+            }
+            else {
+                self.templateStyles = {};
+                self.containerTemplateStyles = {};
+            }
+        }
+
+        self.applyBackground();
+    };
+
+    // Registers the factory function with the element factory.
+    LayoutEditor.registerFactory("Tile", function (value) {
+        return new LayoutEditor.Tile(
+            value.data,
+            value.contentType,
+            value.htmlId,
+            value.htmlClass,
+            value.htmlStyle,
+            value.isTemplated,
+            value.rule,
+            value.hasEditor,
+            value.backgroundUrl,
+            value.backgroundSize,
+            LayoutEditor.childrenFrom(value.children));
+    });
+
+})(LayoutEditor || (LayoutEditor = {}));
 
 
-
-    self.applyBackground\(\);
-
-};
-
-
-
-// Registers the factory function with the element factory.
-
-LayoutEditor.registerFactory\("Tile", function \(value\) {
-
-    return new LayoutEditor.Tile\(
-
-        value.data,
-
-        value.contentType,
-
-        value.htmlId,
-
-        value.htmlClass,
-
-        value.htmlStyle,
-
-        value.isTemplated,
-
-        value.rule,
-
-        value.hasEditor,
-
-        value.backgroundUrl,
-
-        value.backgroundSize,
-
-        LayoutEditor.childrenFrom\(value.children\)\);
-
-}\);
 ```
-
-}\)\(LayoutEditor \|\| \(LayoutEditor = {}\)\);
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 Let's go over each section that's been added from top to bottom:
 
-LayoutEditor.Tile = function \(data, contentType, htmlId, htmlClass, htmlStyle, isTemplated, rule, hasEditor, backgroundUrl, backgroundSize, children\) {
+```javascript
+ LayoutEditor.Tile = function (data, contentType, htmlId, htmlClass, htmlStyle, isTemplated, rule, hasEditor, backgroundUrl, backgroundSize, children) {
+```
 
-Notice the addition of the backgroundUrl and backgroundSize parameters, which are stored as fields here:
+Notice the addition of the `backgroundUrl` and `backgroundSize` parameters, which are stored as fields here:
 
+```javascript
 // The configured background image URL and background size.
-
 self.backgroundUrl = backgroundUrl;
-
 self.backgroundSize = backgroundSize;
+```
 
 Since we want to allow the user to change the background size directly from the layout editor, we'll need to ensure that this value gets serialized, which is taken care of as follows:
 
+```javascript
 // Implements the toObject serialization function.
-
 // This is called when the layout is being serialized into JSON.
-
 var toObject = self.toObject; // Get a reference to the default implementation before we override it.
-
-self.toObject = function \(\) {
-
-```text
-var result = toObject\(\); // Invoke the original \(base\) implementation.
-
-result.children = self.childrenToObject\(\);
-
-result.backgroundUrl = self.backgroundUrl;
-
-result.backgroundSize = self.backgroundSize;
-
-return result;
+self.toObject = function () {
+    var result = toObject(); // Invoke the original (base) implementation.
+    result.children = self.childrenToObject();
+    result.backgroundUrl = self.backgroundUrl;
+    result.backgroundSize = self.backgroundSize;
+    return result;
+};
 ```
 
-};
+The same goes for the `backgroundUrl` property. Although the user can't change this value directly, the layout editor uses the serialization mechanism for copy & paste. If we don't include the `backgroundUrl` as part of this serialization process, it will appear as if we “lost” the background when the user copies and pastes a Tile element \(although in reality the selected background ID will still be part of the element's Data property\).
 
-The same goes for the backgroundUrl property. Although the user can't change this value directly, the layout editor uses the serialization mechanism for copy & paste. If we don't include the backgroundUrl as part of this serialization process, it will appear as if we “lost” the background when the user copies and pastes a Tile element \(although in reality the selected background ID will still be part of the element's Data property\).
+The following code handles the scenario where the user invokes the element's editor dialog. Since the user can change the background size directly from the layout editor, we should pass along that value when the element editor is invoked. To do that, we need to make sure the value becomes part of the object created by the `getEditorObject` function:
 
-The following code handles the scenario where the user invokes the element's editor dialog. Since the user can change the background size directly from the layout editor, we should pass along that value when the element editor is invoked. To do that, we need to make sure the value becomes part of the object created by the getEditorObject function:
-
+```javascript
 // Override the getEditorObject so we can include our backgroundSize property.
-
 // This is called when the element editor dialog is being invoked and we need to
-
 // pass in the client side values.
-
 var getEditorObjectBase = this.getEditorObject;
-
-this.getEditorObject = function \(\) {
-
-```text
-var props = getEditorObjectBase\(\);
-
-props.BackgroundSize = self.backgroundSize;
-
-return props;
+this.getEditorObject = function () {
+    var props = getEditorObjectBase();
+    props.BackgroundSize = self.backgroundSize;
+    return props;
+}
 ```
 
-}
+Notice the name `BackgroundSize` - this needs to exactly match the key as used by the Tile element C\# class for its `BackgroundSize` property. This editor object is converted into a dictionary and merged into the element's Data dictionary when rendering the element's editor dialog.
 
-Notice the name BackgroundSize - this needs to exactly match the key as used by the Tile element C\# class for its BackgroundSize property. This editor object is converted into a dictionary and merged into the element's Data dictionary when rendering the element's editor dialog.
+We also need to handle the reversed scenario, where the user changes the background size value from the element editor dialog screen and then saves that change. We'll want to update the client-side Tile model's `backgroundSize` as well as `backgroundUrl` field to reflect any changes made. That's what the following code is for:
 
-We also need to handle the reversed scenario, where the user changes the background size value from the element editor dialog screen and then saves that change. We'll want to update the client-side Tile model's backgroundSize as well as backgroundUrl field to reflect any changes made. That's what the following code is for:
-
+```text
 // Executed after the element editor dialog closes.
-
-this.applyElementEditorModel = function \(data\) {
-
-```text
-self.backgroundUrl = data.backgroundUrl;
-
-self.backgroundSize = data.backgroundSize;
-
-self.applyBackground\(\);
-```
-
+this.applyElementEditorModel = function (data) {
+    self.backgroundUrl = data.backgroundUrl;
+    self.backgroundSize = data.backgroundSize;
+    self.applyBackground();
 }
-
-The applyElementEditorModel is called by the layout editor when the element editor dialog is closed using the Save command. In our implementation, we're calling a function called applyBackground:
-
-this.hasBackground = function \(\) {
-
-```text
-return self.backgroundUrl && self.backgroundUrl.length &gt; 0;
 ```
 
+The `applyElementEditorModel` is called by the layout editor when the element editor dialog is closed using the Save command. In our implementation, we're calling a function called `applyBackground`:
+
+```javascript
+this.hasBackground = function () {
+    return self.backgroundUrl && self.backgroundUrl.length > 0;
 };
 
-this.applyBackground = function \(\) {
+this.applyBackground = function () {
+    if (self.hasBackground()) {
+        var styles = {
+            "background-image": "url('" + self.backgroundUrl + "')",
+            "background-size": self.backgroundSize && self.backgroundSize.length > 0 ? self.backgroundSize : "cover"
+        };
 
-```text
-if \(self.hasBackground\(\)\) {
-
-    var styles = {
-
-        "background-image": "url\('" + self.backgroundUrl + "'\)",
-
-        "background-size": self.backgroundSize && self.backgroundSize.length &gt; 0 ? self.backgroundSize : "cover"
-
-    };
-
-
-
-    if \(self.children.length == 0\)
-
-        self.templateStyles = styles;
-
-    else
-
-        self.containerTemplateStyles = styles;
-
-}
-
-else {
-
-    self.templateStyles = {};
-
-    self.containerTemplateStyles = {};
-
+        if (self.children.length == 0)
+            self.templateStyles = styles;
+        else
+            self.containerTemplateStyles = styles;
+    }
+    else {
+        self.templateStyles = {};
+        self.containerTemplateStyles = {};
+    }
 }
 ```
 
-}
+What this code does is prepare a JSON object called styles, and then depending on the length of the children array, assigns it to either the `templateStyles` or the `containerTemplateStyles` field. But what are those for?
 
-What this code does is prepare a JSON object called styles, and then depending on the length of the children array, assigns it to either the templateStyles or the containerTemplateStyles field. But what are those things?
+Looking back at the `"Views/LayoutEditor.Template.Tile.cshtml"` view, notice that we're binding the style attribute on the children placeholder `<div>` element against a function called `getTemplateStyles()` here:
 
-Looking back at the “Views/LayoutEditor.Template.Tile.cshtml” view, notice that we're binding the style attribute on the children placeholder &lt;div&gt; element against a function called getTemplateStyles\(\) here:
-
-&lt;div class="layout-container-children-placeholder" style=""&gt;
-
-```text
-@T\("Drag an element from the toolbox and drop it here to add content."\)
+```aspnet
+<div class="layout-container-children-placeholder" style="{{element.getTemplateStyles()}}">
+    @T("Drag an element from the toolbox and drop it here to add content.")
+</div>
 ```
-
-&lt;/div&gt;
 
 That function is defined by the client-side Element model, which converts the templateStyles JSON object into a CSS string.
 
-Similarly, the client-side Container model provides a function called getContainerTemplateStyles\(\) that turns the containerTemplateStyles JSON object into a CSS string as well. That value is then bound against some &lt;div&gt; element in the “LayoutEditor.Template.Children.cshtml” view provided by the Layouts module, which looks like this:
+Similarly, the client-side Container model provides a function called `getContainerTemplateStyles()` that turns the `containerTemplateStyles` JSON object into a CSS string as well. That value is then bound against some `<div>` element in the `"LayoutEditor.Template.Children.cshtml"` view provided by the Layouts module, which looks like this:
 
-&lt;div class="layout-children clearfix" ng-model="element.children" ui-sortable="sortableOptions" style=""&gt;
-
-```text
-&lt;div class="clearfix" ng-repeat="child in element.children" ng-class="getClasses\(child\)" ng-mouseenter="child.setIsActive\(true\)" ng-mouseleave="child.setIsActive\(false\)" ng-click="click\(child, $event\)" tabindex="{{$id}}"&gt;
-
-    &lt;orc-layout-child element="child" /&gt;
-
-&lt;/div&gt;
+```aspnet
+<div class="layout-children clearfix" ng-model="element.children" ui-sortable="sortableOptions" style="{{element.getContainerTemplateStyles()}}">
+    <div class="clearfix" ng-repeat="child in element.children" ng-class="getClasses(child)" ng-mouseenter="child.setIsActive(true)" ng-mouseleave="child.setIsActive(false)" ng-click="click(child, $event)" tabindex="{{$id}}">
+        <orc-layout-child element="child" />
+    </div>
+</div>
 ```
 
-&lt;/div&gt;
-
-So essentially, the templateStyles and containerTemplateStyles fields allow us to provide styles on two different places on the element directive template, which we use to set a background image and background size.
+So essentially, the `templateStyles` and `containerTemplateStyles` fields allow us to provide styles on two different places on the element directive template, which we use to set a background image and background size.
 
 The reason we're setting both fields is because the first one is only rendered if our element does not contain any elements, and the second one is only rendered if there is at least one child element.
 
-Updating Tile/Directive.js
+### Updating Tile/Directive.js
 
-Although not strictly necessary, we should update the Tile directive file as well. The reason being that when the user changes the background size property from the property window of the element, ideally we would want to see that change reflected instantly. Although that text field is bound against the backgroundSize field of the element, that is not enough to reflect the change, since setting the background image is done by the applyBackground function.
+Although not strictly necessary, we should update the Tile directive file as well. The reason being that when the user changes the background size property from the property window of the element, ideally we would want to see that change reflected instantly. Although that text field is bound against the `backgroundSize` field of the element, that is not enough to reflect the change, since setting the background image is done by the applyBackground function.
 
 So let's go ahead and add a linker to our directive:
 
-link: function \($scope, $element, $attrs\) {
-
-```text
-$element.on\("change", "\[ng-model='element.backgroundSize'\]", function \(\) {
-
-    $scope.element.applyBackground\(\);
-
-}\);
+```javascript
+link: function ($scope, $element, $attrs) {
+    $element.on("change", "[ng-model='element.backgroundSize']", function () {
+        $scope.element.applyBackground();
+    });
+}
 ```
 
-}
+This linker binds the change event of the text field bound against the `element.backgroundSize` property. Whenever the contents change of that text field, we call the `applyBackground` function on the bound element.
 
-This linker binds the change event of the text field bound against the element.backgroundSize property. Whenever the contents change of that text field, we call the applyBackground function on the bound element.
+### Updating LayoutEditor.Template.Tile.cshtml
 
-Updating LayoutEditor.Template.Tile.cshtml
+Finally, we'll also need to update the directive's template so that the property editor actually displays a text field for the background size property. The easiest way to do that is by providing a list of `LayoutEditorPropertiesItem` to the `LayoutEditor_Template_Properties` shape that's being used by the directive template. This enables us to simply declare additional property editors without having to duplicate existing ones and without having to provide markup.
 
-Finally, we'll also need to update the directive's template so that the property editor actually displays a text field for the background size property. The easiest way to do that is by providing a list of LayoutEditorPropertiesItem to the LayoutEditor\_Template\_Properties shape that's being used by the directive template. This enables us to simply declare additional property editors without having to duplicate existing ones and without having to provide markup.
+The updated template looks like this \(lines 2 to 9 and line 14\):
 
-The updated template looks like this:
-
+```aspnet
 @using Orchard.Layouts.ViewModels
-
 @{
-
-```text
-var additionalProperties = new\[\] {
-
-    new LayoutEditorPropertiesItem\(\) {
-
-        Label = T\("Background Size:"\).ToString\(\),
-
-        Model = "element.backgroundSize"
-
-    }
-
-};
-```
-
+    var additionalProperties = new[] {
+        new LayoutEditorPropertiesItem() {
+            Label = T("Background Size:").ToString(),
+            Model = "element.backgroundSize"
+        }
+    };
 }
-
-&lt;div class="layout-element-wrapper layout-element-background" ng-class="{'layout-container-empty': getShowChildrenPlaceholder\(\)}"&gt;
-
-```text
-&lt;ul class="layout-panel layout-panel-main"&gt;
-
-    &lt;li class="layout-panel-item layout-panel-label"&gt;Tile&lt;/li&gt;
-
-    &lt;li class="layout-panel-item layout-panel-action layout-panel-action-edit" ng-show="{{element.hasEditor}}" title="Edit tile \(Enter\)" ng-click="edit\(\)"&gt;&lt;i class="fa fa-code"&gt;&lt;/i&gt;&lt;/li&gt;
-
-    @Display\(New.LayoutEditor\_Template\_Properties\(ElementTypeName: "tile", Items: additionalProperties\)\)
-
-    &lt;li class="layout-panel-item layout-panel-action" title="@T\("Delete tile \(Del\)"\)" ng-click="delete\(element\)" ng-show="element.canDelete\(\)"&gt;&lt;i class="fa fa-remove"&gt;&lt;/i&gt;&lt;/li&gt;
-
-    &lt;li class="layout-panel-item layout-panel-action" title="@T\("Move tile up \(Ctrl+Up\)"\)" ng-click="element.moveUp\(\)" ng-show="element.canMoveUp\(\)"&gt;&lt;i class="fa fa-chevron-up"&gt;&lt;/i&gt;&lt;/li&gt;
-
-    &lt;li class="layout-panel-item layout-panel-action" title="@T\("Move tile down \(Ctrl+Down\)"\)" ng-click="element.moveDown\(\)" ng-show="element.canMoveDown\(\)"&gt;&lt;i class="fa fa-chevron-down"&gt;&lt;/i&gt;&lt;/li&gt;
-
-&lt;/ul&gt;
-
-&lt;div class="layout-container-children-placeholder" style="{{element.getTemplateStyles\(\)}}"&gt;
-
-    @T\("Drag an element from the toolbox and drop it here to add content."\)
-
-&lt;/div&gt;
-
-@Display\(New.LayoutEditor\_Template\_Children\(\)\)
+<div class="layout-element-wrapper layout-element-background" ng-class="{'layout-container-empty': getShowChildrenPlaceholder()}">
+    <ul class="layout-panel layout-panel-main">
+        <li class="layout-panel-item layout-panel-label">Tile</li>
+        <li class="layout-panel-item layout-panel-action layout-panel-action-edit" ng-show="{{element.hasEditor}}" title="Edit tile (Enter)" ng-click="edit()"><i class="fa fa-code"></i></li>
+        @Display(New.LayoutEditor_Template_Properties(ElementTypeName: "tile", Items: additionalProperties))
+        <li class="layout-panel-item layout-panel-action" title="@T("Delete tile (Del)")" ng-click="delete(element)" ng-show="element.canDelete()"><i class="fa fa-remove"></i></li>
+        <li class="layout-panel-item layout-panel-action" title="@T("Move tile up (Ctrl+Up)")" ng-click="element.moveUp()" ng-show="element.canMoveUp()"><i class="fa fa-chevron-up"></i></li>
+        <li class="layout-panel-item layout-panel-action" title="@T("Move tile down (Ctrl+Down)")" ng-click="element.moveDown()" ng-show="element.canMoveDown()"><i class="fa fa-chevron-down"></i></li>
+    </ul>
+    <div class="layout-container-children-placeholder" style="{{element.getTemplateStyles()}}">
+        @T("Drag an element from the toolbox and drop it here to add content.")
+    </div>
+    @Display(New.LayoutEditor_Template_Children())
+</div>
 ```
 
-&lt;/div&gt;
-
-Before trying out the changes, make sure to execute the Build task from the Task Runner Explorer to update the generated files.
+Before trying out the changes, make sure to execute the _Build_ task from the Task Runner Explorer to update the generated files.
 
 Notice that as you change the value for the Background Size property, the change is reflected instantly. Also notice that when you launch the element editor dialog, the same background size value is used. When you change that value from the editor and hit Save, that value is once again round-tripped back to the layout editor.
 
 One final touch we could make is to provide some CSS that gives the child elements a semi-transparent background to increase the contrast when working with the layout editor and background images.
 
-Open the file “Assets/Elements/Tile/Style.less” and enter the following CSS rules:
+Open the file `"Assets/Elements/Tile/Style.less"` and add the following lines:
 
+```css
 .layout-element-background {
-
-```text
-.layout-content-markup {
-
-    background: rgba\(255, 255, 255, 0.7\);
-
+    .layout-content-markup {
+        background: rgba(255, 255, 255, 0.7);
+    }
 }
 ```
 
-}
+This gives all child elements a semi-transparent \(70% opaque\) white background. Make sure to execute the _Build _task from the Task Runner Explorer again, and then refresh the page to see the result.
 
-This gives all child elements a semi-transparent \(70% opaque\) white background. Make sure to execute the Build task from the Task Runner Explorer again, and then refresh the page:
+## Summary
 
-Summary
-
-Well, that was quite a journey. In this chapter, we learned all of the intricacies of writing custom container elements, and I'll admit it: it would be nice if this process were a little bit more straightforward.
+Well, that was quite a journey. In this chapter, we learned all of the intricacies of writing custom container elements.
 
 Implementing custom container elements require the following steps:
 
-1. Derive from \`Container\`;
+1. Derive from `Container`;
 2. Create a driver;
-3. Derive from \`LayoutModelMapBase&lt;T&gt;\`;
+3. Derive from `LayoutModelMapBase<T>`;
 4. Implement a client-side model and directive;
 5. Implement a resource manifest provider;
 6. Implement a shape table provider.
-
-This developer's story is bound to be improved in newer versions of Orchard, but this is what it is for the time being. And I hope you agree that it is quite worth the effort.
 
