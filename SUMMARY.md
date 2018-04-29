@@ -14,4 +14,5 @@
 * [Snippets](snippets.md)
 * [Writing Custom Elements](writing-custom-elements.md)
 * [Writing Container Elements](writing-container-elements.md)
+* [Element Harvesters](element-harvesters.md)
 
