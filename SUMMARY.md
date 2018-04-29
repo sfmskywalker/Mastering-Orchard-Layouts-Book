@@ -15,4 +15,7 @@
 * [Writing Custom Elements](writing-custom-elements.md)
 * [Writing Container Elements](writing-container-elements.md)
 * [Element Harvesters](element-harvesters.md)
+* [Extending Existing Elements](extending-existing-elements.md)
+* [Layout and Element APIs](layout-and-element-apis.md)
+* [Writing a SlideShow Element](writing-a-slideshow-element.md)
 
