@@ -1,6 +1,7 @@
 # Table of contents
 
-* [Introduction](README.md)
+* [Mastering Orchard Layouts](README.md)
+* [Welcome](welcome.md)
 * [Introduction to Layouts](introduction-to-layouts.md)
 * [First Look](first-look.md)
 * [Meet the Elements](meet-the-elements.md)
